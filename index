@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxis Zubex</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f2f5;min-height:100vh}
+:root{--blue:#0D18A8;--blue-dark:#0a1280;--white:#fff;--gray:#f8f9fa;--border:#dee2e6;--text:#212529;--muted:#6c757d;--success:#198754;--warning:#ffc107;--danger:#dc3545;--pending:#fff3cd;--active:#d1ecf1;--done:#d4edda}
+nav{background:var(--blue);color:var(--white);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+nav .logo{font-weight:700;font-size:1.1rem;letter-spacing:.5px}
+nav .tabs{display:flex;gap:4px}
+nav .tab{background:transparent;border:none;color:rgba(255,255,255,.7);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:.9rem;transition:.2s}
+nav .tab:hover{background:rgba(255,255,255,.15);color:#fff}
+nav .tab.active{background:rgba(255,255,255,.2);color:#fff;font-weight:600}
+nav .badge{background:#dc3545;color:#fff;border-radius:10px;font-size:.7rem;padding:1px 6px;margin-left:4px;font-weight:700}
+main{max-width:900px;margin:0 auto;padding:1.5rem}
+.card{background:var(--white);border-radius:10px;border:1px solid var(--border);padding:1.5rem;margin-bottom:1rem}
+.card-title{font-size:1rem;font-weight:700;color:var(--blue);margin-bottom:1.25rem;display:flex;align-items:center;gap:8px}
+label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+input,select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:.95rem;color:var(--text);background:#fff;outline:none;transition:.2s}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(13,24,168,.1)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.op-card{background:var(--gray);border:1px solid var(--border);border-radius:8px;padding:1rem;position:relative;margin-bottom:.75rem}
+.op-num{font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:.5rem}
+.op-remove{position:absolute;top:8px;right:8px;background:none;border:none;color:#aaa;cursor:pointer;font-size:1.1rem;line-height:1;padding:2px 6px;border-radius:4px}
+.op-remove:hover{color:var(--danger);background:#ffeaea}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:7px;border:none;font-size:.9rem;font-weight:600;cursor:pointer;transition:.2s}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-outline{background:#fff;border:1.5px solid var(--blue);color:var(--blue)}
+.btn-outline:hover{background:#f0f2ff}
+.btn-sm{padding:5px 12px;font-size:.8rem}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#157347}
+.btn-row{display:flex;gap:.75rem;margin-top:1.25rem;align-items:center}
+.badge-status{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.badge-pending{background:var(--pending);color:#856404}
+.badge-active{background:var(--active);color:#0c5460}
+.badge-done{background:var(--done);color:#155724}
+.sol-card{border:1px solid var(--border);border-radius:8px;margin-bottom:.75rem;overflow:hidden;transition:.2s}
+.sol-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.sol-header{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.sol-header.pending{background:var(--pending)}
+.sol-header.active{background:var(--active)}
+.sol-header.done{background:var(--done)}
+.sol-folio{font-weight:700;font-size:1rem;color:var(--text)}
+.sol-info{font-size:.8rem;color:var(--muted)}
+.sol-body{padding:1rem;border-top:1px solid var(--border);background:#fff}
+.ops-table{width:100%;font-size:.85rem;border-collapse:collapse}
+.ops-table th{text-align:left;padding:6px 10px;background:var(--gray);font-weight:600;color:var(--muted);font-size:.75rem;text-transform:uppercase}
+.ops-table td{padding:7px 10px;border-top:1px solid var(--border)}
+.tbl-wrap{overflow-x:auto}
+table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
+.bitacora th{background:var(--blue);color:#fff;padding:9px 12px;text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.bitacora td{padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+.bitacora tr:hover td{background:#f8f9ff}
+#toast{position:fixed;bottom:24px;right:24px;background:#212529;color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;opacity:0;pointer-events:none;transition:.3s;z-index:999;max-width:300px}
+#toast.show{opacity:1}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.pulse{animation:pulse 1.5s infinite}
+.section{display:none}.section.active{display:block}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-state .icon{font-size:3rem;margin-bottom:.5rem}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">🚖 Taxis Zubex</div>
+  <div class="tabs">
+    <button class="tab active" onclick="showSection('solicitar',this)">Solicitar taxi</button>
+    <button class="tab" onclick="showSection('vigilancia',this)" id="tab-vig">
+      Vigilancia <span class="badge pulse" id="notif-badge" style="display:none">0</span>
+    </button>
+    <button class="tab" onclick="showSection('bitacora',this)">Bitácora</button>
+  </div>
+</nav>
+
+<main>
+
+<div class="section active" id="sec-solicitar">
+  <div class="card">
+    <div class="card-title">📋 Nueva solicitud de taxi</div>
+    <div id="personal-status" style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">
+      <span class="spinner"></span> Cargando catálogo de personal...
+    </div>
+    <div class="grid2" style="margin-bottom:1rem">
+      <div>
+        <label>Destino</label>
+        <select id="destino">
+          <option value="">— Seleccionar —</option>
+          <option>CITADEL</option>
+          <option>HEB</option>
+          <option>LA FE</option>
+          <option>Y GRIEGA</option>
+        </select>
+      </div>
+      <div>
+        <label>Solicitante (supervisor)</label>
+        <input type="text" id="solicitante" placeholder="Tu nombre">
+      </div>
+    </div>
+    <div id="ops-container"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline btn-sm" id="btn-add-op" onclick="addOperador()">+ Agregar operador</button>
+      <span id="op-count-info" style="font-size:.8rem;color:var(--muted)"></span>
+    </div>
+    <div class="btn-row" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem">
+      <button class="btn btn-primary" id="btn-enviar" onclick="enviarSolicitud()">🚖 Enviar solicitud a vigilancia</button>
+      <span id="form-msg" style="font-size:.85rem;color:var(--danger)"></span>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="sec-vigilancia">
+  <div class="card" style="margin-bottom:1rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+      <div class="card-title" style="margin-bottom:0">🔔 Panel de vigilancia</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm btn-outline" onclick="filterSol('all')" style="border-color:#aaa;color:#555">Todas</button>
+        <button class="btn btn-sm btn-outline" onclick="filterSol('pending')">Pendientes</button>
+        <button class="btn btn-sm" onclick="filterSol('done')" style="background:var(--done);border:1px solid #b8ddb8;color:#155724">Completadas</button>
+      </div>
+    </div>
+  </div>
+  <div id="sol-list"></div>
+</div>
+
+<div class="section" id="sec-bitacora">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem">
+      <div class="card-title" style="margin-bottom:0">📒 Bitácora de taxis</div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <input type="date" id="fil-fecha" style="width:160px" onchange="renderBitacora()">
+        <button class="btn btn-sm btn-outline" onclick="document.getElementById('fil-fecha').value='';renderBitacora()">Limpiar</button>
+        <button class="btn btn-sm btn-primary" onclick="exportarCSV()">⬇ CSV</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="bitacora">
+        <thead>
+          <tr><th>Fecha</th><th>Folio</th><th>N. Emp</th><th>Nombre</th><th>Dpto.</th><th>Destino</th><th>Unidad</th><th>Estado</th></tr>
+        </thead>
+        <tbody id="tbody-bitacora"></tbody>
+      </table>
+    </div>
+    <div id="bitacora-empty" class="empty-state" style="display:none">
+      <div class="icon">📭</div><div>Sin registros para esta fecha</div>
+    </div>
+  </div>
+</div>
+
+</main>
+<div id="toast"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdWSDzYW3A-AATN-Jc909ADk28_XnSmZL6RewH9F8ipCwB2cr0FaoXAF4Gr-FyfGU/exec';
+
+let solicitudes = JSON.parse(localStorage.getItem('zx_taxis_sol') || '[]');
+let folioActual = parseInt(localStorage.getItem('zx_folio') || '16100');
+let operadoresForm = [];
+let personal = [];
+
+function saveState(){
+  localStorage.setItem('zx_taxis_sol', JSON.stringify(solicitudes));
+  localStorage.setItem('zx_folio', folioActual.toString());
+}
+
+// ---- CARGAR PERSONAL (JSONP) ----
+function cargarPersonal(){
+  return new Promise((resolve) => {
+    const cbName = 'cbPersonal_' + Date.now();
+    const script = document.createElement('script');
+    window[cbName] = (data) => {
+      if(data.ok && data.personal.length > 0){
+        personal = data.personal;
+        document.getElementById('personal-status').textContent = '✅ ' + personal.length + ' empleados cargados';
+        setTimeout(()=>{ document.getElementById('personal-status').style.display='none'; }, 2000);
+      } else {
+        document.getElementById('personal-status').textContent = '⚠ No se pudo cargar el catálogo';
+      }
+      delete window[cbName];
+      script.remove();
+      resolve();
+    };
+    script.onerror = () => {
+      document.getElementById('personal-status').textContent = '⚠ Error al cargar catálogo';
+      resolve();
+    };
+    script.src = SCRIPT_URL + '?action=getPersonal&callback=' + cbName;
+    document.head.appendChild(script);
+  });
+}
+
+// ---- CARGAR FOLIO (JSONP) ----
+function cargarFolio(){
+  return new Promise((resolve) => {
+    const cbName = 'cbFolio_' + Date.now();
+    const script = document.createElement('script');
+    window[cbName] = (data) => {
+      if(data.ok) folioActual = data.folio;
+      delete window[cbName];
+      script.remove();
+      resolve();
+    };
+    script.onerror = () => resolve();
+    script.src = SCRIPT_URL + '?action=getUltimoFolio&callback=' + cbName;
+    document.head.appendChild(script);
+  });
+}
+
+// ---- SECCIONES ----
+function showSection(id, btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='vigilancia') renderVigilancia();
+  if(id==='bitacora') renderBitacora();
+}
+
+// ---- FORM OPERADORES ----
+function initForm(){
+  operadoresForm = [];
+  addOperador();
+}
+
+function addOperador(){
+  if(operadoresForm.length>=4){showToast('Máximo 4 operadores por folio');return;}
+  operadoresForm.push({nom:'',nombre:'',depto:''});
+  renderOpCards();
+}
+
+function removeOperador(i){
+  if(operadoresForm.length<=1) return;
+  operadoresForm.splice(i,1);
+  renderOpCards();
+}
+
+function renderOpCards(){
+  const c = document.getElementById('ops-container');
+  c.innerHTML = operadoresForm.map((op,i)=>`
+    <div class="op-card">
+      <div class="op-num">Operador ${i+1}</div>
+      ${operadoresForm.length>1?`<button class="op-remove" onclick="removeOperador(${i})">✕</button>`:''}
+      <div class="grid3">
+        <div>
+          <label>N. Nómina</label>
+          <input type="text" placeholder="Ej. 3317" value="${op.nom}" oninput="onNomChange(${i},this.value)">
+        </div>
+        <div>
+          <label>Nombre</label>
+          <input type="text" placeholder="Autocompletado" value="${op.nombre}" id="nombre-${i}" oninput="operadoresForm[${i}].nombre=this.value">
+        </div>
+        <div>
+          <label>Departamento</label>
+          <input type="text" placeholder="Autocompletado" value="${op.depto}" id="depto-${i}" oninput="operadoresForm[${i}].depto=this.value">
+        </div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('op-count-info').textContent = `${operadoresForm.length}/4 operadores`;
+  document.getElementById('btn-add-op').style.display = operadoresForm.length>=4?'none':'inline-flex';
+}
+
+function onNomChange(i, val){
+  operadoresForm[i].nom = val;
+  const match = personal.find(p=>String(p.nom).trim()===String(val).trim());
+  if(match){
+    operadoresForm[i].nombre = match.nombre;
+    operadoresForm[i].depto = match.depto;
+    document.getElementById('nombre-'+i).value = match.nombre;
+    document.getElementById('depto-'+i).value = match.depto;
+  }
+}
+
+function enviarSolicitud(){
+  const destino = document.getElementById('destino').value;
+  const solicitante = document.getElementById('solicitante').value.trim();
+  const msg = document.getElementById('form-msg');
+  if(!destino){msg.textContent='Selecciona un destino';return;}
+  if(!solicitante){msg.textContent='Ingresa tu nombre';return;}
+  const ops = operadoresForm.filter(o=>o.nom||o.nombre);
+  if(ops.length===0){msg.textContent='Agrega al menos un operador';return;}
+  if(ops.find(o=>!o.nom||!o.nombre)){msg.textContent='Completa nómina y nombre de todos los operadores';return;}
+  msg.textContent='';
+  const folio = ++folioActual;
+  const ahora = new Date();
+  const fecha = ahora.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const hora = ahora.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  const sol = {id:Date.now(),folio,fecha,hora,destino,solicitante,operadores:ops.map(o=>({...o})),unidad:'',estado:'pending',horaLlegada:''};
+  solicitudes.unshift(sol);
+  saveState();
+  updateBadge();
+  guardarEnSheet(sol);
+  showToast(`✅ Solicitud #${folio} enviada a vigilancia`);
+  document.getElementById('destino').value='';
+  document.getElementById('solicitante').value='';
+  initForm();
+  renderOpCards();
+}
+
+// ---- VIGILANCIA ----
+let filtroActual = 'all';
+function filterSol(f){filtroActual=f;renderVigilancia();}
+
+function renderVigilancia(){
+  const list = document.getElementById('sol-list');
+  let data = [...solicitudes];
+  if(filtroActual==='pending') data=data.filter(s=>s.estado==='pending');
+  if(filtroActual==='done') data=data.filter(s=>s.estado==='done');
+  if(data.length===0){
+    list.innerHTML=`<div class="empty-state"><div class="icon">🚖</div><div>${filtroActual==='pending'?'Sin solicitudes pendientes':'Sin registros'}</div></div>`;
+    return;
+  }
+  list.innerHTML = data.map(sol=>`
+    <div class="sol-card">
+      <div class="sol-header ${sol.estado}" onclick="toggleSol(${sol.id})">
+        <div>
+          <span class="sol-folio">Folio #${sol.folio}</span>
+          <span class="sol-info"> · ${sol.destino} · ${sol.hora} · ${sol.operadores.length} persona(s)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${sol.unidad?`<strong style="font-size:.85rem">🚕 ${sol.unidad}</strong>`:''}
+          <span class="badge-status badge-${sol.estado==='pending'?'pending':sol.estado==='active'?'active':'done'}">
+            ${sol.estado==='pending'?'Pendiente':sol.estado==='active'?'En camino':'Completado'}
+          </span>
+        </div>
+      </div>
+      <div class="sol-body" id="body-${sol.id}" style="display:none">
+        <div style="margin-bottom:.75rem;font-size:.8rem;color:var(--muted)">Solicitado por: <strong>${sol.solicitante}</strong> · ${sol.fecha} ${sol.hora}</div>
+        <table class="ops-table">
+          <thead><tr><th>N. Emp</th><th>Nombre</th><th>Depto.</th></tr></thead>
+          <tbody>${sol.operadores.map(o=>`<tr><td>${o.nom}</td><td>${o.nombre}</td><td>${o.depto||'—'}</td></tr>`).join('')}</tbody>
+        </table>
+        ${sol.estado!=='done'?`
+        <div style="margin-top:1rem;display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap">
+          <div>
+            <label>Número de unidad</label>
+            <input type="text" placeholder="Ej. M-22, 21, U06..." id="unidad-${sol.id}" value="${sol.unidad}" style="width:180px">
+          </div>
+          <div style="display:flex;gap:.5rem">
+            ${sol.estado==='pending'?`<button class="btn btn-sm btn-outline" onclick="marcarActivo(${sol.id})">📞 Taxi solicitado</button>`:''}
+            <button class="btn btn-sm btn-success" onclick="completar(${sol.id})">✅ Taxi llegó</button>
+          </div>
+        </div>`:`
+        <div style="margin-top:.75rem;font-size:.85rem;color:var(--success)">
+          ✅ Completado · Unidad: <strong>${sol.unidad||'—'}</strong> · ${sol.horaLlegada}
+        </div>`}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleSol(id){
+  const body = document.getElementById('body-'+id);
+  body.style.display = body.style.display==='none'?'block':'none';
+}
+
+function marcarActivo(id){
+  const s = solicitudes.find(x=>x.id===id);
+  if(!s) return;
+  const u = document.getElementById('unidad-'+id).value.trim();
+  if(u) s.unidad=u;
+  s.estado='active';
+  saveState();
+  actualizarEnSheet(s);
+  renderVigilancia();
+  showToast(`Folio #${s.folio} marcado como en camino`);
+}
+
+function completar(id){
+  const s = solicitudes.find(x=>x.id===id);
+  if(!s) return;
+  const u = document.getElementById('unidad-'+id).value.trim();
+  if(!u){showToast('⚠ Ingresa el número de unidad');return;}
+  s.unidad=u;
+  s.estado='done';
+  s.horaLlegada=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  saveState();
+  updateBadge();
+  actualizarEnSheet(s);
+  renderVigilancia();
+  showToast(`✅ Folio #${s.folio} completado · Unidad ${u}`);
+}
+
+// ---- BITACORA ----
+function renderBitacora(){
+  const fil = document.getElementById('fil-fecha').value;
+  const tbody = document.getElementById('tbody-bitacora');
+  const empty = document.getElementById('bitacora-empty');
+  let filas = [];
+  solicitudes.forEach(sol=>{
+    sol.operadores.forEach(op=>{
+      filas.push({fecha:sol.fecha,folio:sol.folio,nom:op.nom,nombre:op.nombre,depto:op.depto||'—',destino:sol.destino,unidad:sol.unidad||'—',estado:sol.estado});
+    });
+  });
+  if(fil){
+    const [y,m,d]=fil.split('-');
+    const ff=`${d}/${m}/${y}`;
+    filas=filas.filter(f=>f.fecha===ff);
+  }
+  if(filas.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=filas.map(f=>`
+    <tr>
+      <td>${f.fecha}</td><td><strong>${f.folio}</strong></td><td>${f.nom}</td>
+      <td>${f.nombre}</td><td>${f.depto}</td><td>${f.destino}</td><td>${f.unidad}</td>
+      <td><span class="badge-status badge-${f.estado==='pending'?'pending':f.estado==='active'?'active':'done'}">${f.estado==='pending'?'Pendiente':f.estado==='active'?'En camino':'Completado'}</span></td>
+    </tr>
+  `).join('');
+}
+
+function exportarCSV(){
+  let filas=[];
+  solicitudes.forEach(sol=>{
+    sol.operadores.forEach(op=>{
+      filas.push([sol.fecha,sol.folio,op.nom,op.nombre,op.depto||'',sol.destino,sol.unidad||''].join(','));
+    });
+  });
+  const csv='FECHA,FOLIO,N. EMP,NOMBRE,DEPARTAMENTO,DESTINO,UNIDAD\n'+filas.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='bitacora_taxis.csv';a.click();
+}
+
+// ---- SHEETS ----
+function guardarEnSheet(sol){
+  const filas=sol.operadores.map(op=>([sol.fecha,sol.folio,op.nom,op.nombre,op.depto||'',sol.destino,'','PENDING',sol.hora,sol.solicitante,sol.id]));
+  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'insert',rows:filas})}).catch(()=>{});
+  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'setFolio',folio:folioActual})}).catch(()=>{});
+}
+
+function actualizarEnSheet(sol){
+  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:sol.id,unidad:sol.unidad,estado:sol.estado,horaLlegada:sol.horaLlegada})}).catch(()=>{});
+}
+
+// ---- BADGE / TOAST ----
+function updateBadge(){
+  const n=solicitudes.filter(s=>s.estado==='pending').length;
+  const b=document.getElementById('notif-badge');
+  b.style.display=n>0?'inline':'none';
+  b.textContent=n;
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ---- INIT ----
+initForm();
+renderOpCards();
+updateBadge();
+cargarPersonal();
+cargarFolio();
+</script>
+</body>
+</html>
