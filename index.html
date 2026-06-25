@@ -160,7 +160,6 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
   </div>
 </div>
 
-</main>
 <div class="section" id="sec-login">
   <div class="login-box">
     <div style="font-size:2rem;margin-bottom:.75rem">🔒</div>
@@ -172,9 +171,38 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
   </div>
 </div>
 
+</main>
+
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdWSDzYW3A-AATN-Jc909ADk28_XnSmZL6RewH9F8ipCwB2cr0FaoXAF4Gr-FyfGU/exec';
+const PASS = 'vig2026';
+let accesoVigilancia = false;
+let seccionPendiente = '';
+let tabPendiente = null;
+
+function pedirAcceso(seccion, btn){
+  if(accesoVigilancia){ showSection(seccion, btn); return; }
+  seccionPendiente = seccion;
+  tabPendiente = btn;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-login').classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('input-pass').value='';
+  document.getElementById('pass-error').style.display='none';
+  setTimeout(()=>document.getElementById('input-pass').focus(),100);
+}
+
+function verificarPass(){
+  if(document.getElementById('input-pass').value === PASS){
+    accesoVigilancia = true;
+    showSection(seccionPendiente, tabPendiente);
+  } else {
+    document.getElementById('pass-error').style.display='block';
+    document.getElementById('input-pass').value='';
+    document.getElementById('input-pass').focus();
+  }
+} = 'https://script.google.com/macros/s/AKfycbxdWSDzYW3A-AATN-Jc909ADk28_XnSmZL6RewH9F8ipCwB2cr0FaoXAF4Gr-FyfGU/exec';
 
 let solicitudes = JSON.parse(localStorage.getItem('zx_taxis_sol') || '[]');
 let folioActual = parseInt(localStorage.getItem('zx_folio') || '16100');
