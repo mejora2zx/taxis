@@ -21,10 +21,10 @@ main{max-width:900px;margin:0 auto;padding:1.5rem}
 label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase}
 input,select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:.95rem;color:var(--text);background:#fff;outline:none;transition:.2s}
 input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(13,24,168,.1)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.grid4{display:grid;grid-template-columns:1.2fr 1fr 1.5fr 1.5fr;gap:.75rem}
 .op-card{background:var(--gray);border:1px solid var(--border);border-radius:8px;padding:1rem;position:relative;margin-bottom:.75rem}
-.op-num{font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:.5rem}
+.op-num{font-size:.75rem;font-weight:700;color:var(--blue);margin-bottom:.6rem}
 .op-remove{position:absolute;top:8px;right:8px;background:none;border:none;color:#aaa;cursor:pointer;font-size:1.1rem;padding:2px 6px;border-radius:4px}
 .op-remove:hover{color:var(--danger);background:#ffeaea}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:7px;border:none;font-size:.9rem;font-weight:600;cursor:pointer;transition:.2s}
@@ -37,12 +37,10 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(13,2
 .btn-row{display:flex;gap:.75rem;margin-top:1.25rem;align-items:center}
 .badge-status{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:700;text-transform:uppercase}
 .badge-pending{background:var(--pending);color:#856404}
-.badge-active{background:var(--active);color:#0c5460}
 .badge-done{background:var(--done);color:#155724}
 .sol-card{border:1px solid var(--border);border-radius:8px;margin-bottom:.75rem;overflow:hidden}
 .sol-header{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
 .sol-header.pending{background:var(--pending)}
-.sol-header.active{background:var(--active)}
 .sol-header.done{background:var(--done)}
 .sol-folio{font-weight:700;font-size:1rem}
 .sol-info{font-size:.8rem;color:var(--muted)}
@@ -87,33 +85,28 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
 
 <main>
 
+  <!-- SOLICITAR -->
   <div class="section active" id="sec-solicitar">
     <div class="card">
       <div class="card-title">📋 Nueva solicitud de taxi</div>
       <div id="personal-status" style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">
         <span class="spinner"></span> Cargando catálogo de personal...
       </div>
-      <div class="grid2" style="margin-bottom:1rem">
-        <div>
-          <label>Destino</label>
-          <select id="destino">
-            <option value="">— Seleccionar —</option>
-            <option>CITADEL</option>
-            <option>HEB</option>
-            <option>LA FE</option>
-            <option>Y GRIEGA</option>
-          </select>
-        </div>
-        <div>
-          <label>Solicitante (supervisor)</label>
-          <input type="text" id="solicitante" placeholder="Tu nombre">
-        </div>
+
+      <!-- Solicitante -->
+      <div style="margin-bottom:1.25rem">
+        <label>Solicitante (supervisor)</label>
+        <input type="text" id="solicitante" placeholder="Tu nombre" style="max-width:400px">
       </div>
+
+      <!-- Personas -->
       <div id="ops-container"></div>
+
       <div class="btn-row">
-        <button class="btn btn-outline btn-sm" id="btn-add-op" onclick="addOperador()">+ Agregar operador</button>
+        <button class="btn btn-outline btn-sm" id="btn-add-op" onclick="addOperador()">+ Agregar persona</button>
         <span id="op-count-info" style="font-size:.8rem;color:var(--muted)"></span>
       </div>
+
       <div class="btn-row" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem">
         <button class="btn btn-primary" onclick="enviarSolicitud()">🚖 Enviar solicitud a vigilancia</button>
         <span id="form-msg" style="font-size:.85rem;color:var(--danger)"></span>
@@ -121,6 +114,7 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     </div>
   </div>
 
+  <!-- VIGILANCIA -->
   <div class="section" id="sec-vigilancia">
     <div class="card" style="margin-bottom:1rem">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
@@ -135,6 +129,7 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     <div id="sol-list"></div>
   </div>
 
+  <!-- BITACORA -->
   <div class="section" id="sec-bitacora">
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem">
@@ -148,7 +143,7 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
       <div class="tbl-wrap">
         <table class="bitacora">
           <thead>
-            <tr><th>Fecha</th><th>Folio</th><th>N. Emp</th><th>Nombre</th><th>Dpto.</th><th>Destino</th><th>Unidad</th><th>Estado</th></tr>
+            <tr><th>Fecha</th><th>Folio</th><th>N. Emp</th><th>Nombre</th><th>Dpto.</th><th>Destino</th><th>Unidad</th></tr>
           </thead>
           <tbody id="tbody-bitacora"></tbody>
         </table>
@@ -159,6 +154,7 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     </div>
   </div>
 
+  <!-- LOGIN -->
   <div class="section" id="sec-login">
     <div class="login-box">
       <div style="font-size:2rem;margin-bottom:.75rem">🔒</div>
@@ -171,25 +167,23 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
   </div>
 
 </main>
-
 <div id="toast"></div>
 
 <script>
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdWSDzYW3A-AATN-Jc909ADk28_XnSmZL6RewH9F8ipCwB2cr0FaoXAF4Gr-FyfGU/exec';
 var PASS = 'vig2026';
 var solicitudes = JSON.parse(localStorage.getItem('zx_taxis_sol') || '[]');
-var folioActual = parseInt(localStorage.getItem('zx_folio') || '16100');
-var operadoresForm = [];
 var personal = [];
+var operadoresForm = [];
 var accesoVigilancia = false;
 var seccionPendiente = '';
 var tabPendiente = null;
 
 function saveState() {
   localStorage.setItem('zx_taxis_sol', JSON.stringify(solicitudes));
-  localStorage.setItem('zx_folio', folioActual.toString());
 }
 
+// ---- NAVEGACION ----
 function showSection(id, btn) {
   var secs = document.querySelectorAll('.section');
   for (var i = 0; i < secs.length; i++) secs[i].classList.remove('active');
@@ -228,6 +222,7 @@ function verificarPass() {
   }
 }
 
+// ---- PERSONAL ----
 function cargarPersonal() {
   var cbName = 'cbP_' + Date.now();
   var script = document.createElement('script');
@@ -239,38 +234,23 @@ function cargarPersonal() {
     } else {
       document.getElementById('personal-status').textContent = '⚠ No se pudo cargar el catálogo';
     }
-    delete window[cbName];
-    script.remove();
+    delete window[cbName]; script.remove();
   };
-  script.onerror = function() {
-    document.getElementById('personal-status').textContent = '⚠ Error al cargar catálogo';
-  };
+  script.onerror = function() { document.getElementById('personal-status').textContent = '⚠ Error al cargar catálogo'; };
   script.src = SCRIPT_URL + '?action=getPersonal&callback=' + cbName;
   document.head.appendChild(script);
 }
 
-function cargarFolio() {
-  var cbName = 'cbF_' + Date.now();
-  var script = document.createElement('script');
-  window[cbName] = function(data) {
-    if (data.ok) folioActual = data.folio;
-    delete window[cbName];
-    script.remove();
-  };
-  script.onerror = function() {};
-  script.src = SCRIPT_URL + '?action=getUltimoFolio&callback=' + cbName;
-  document.head.appendChild(script);
-}
-
+// ---- FORM OPERADORES ----
 function initForm() {
   operadoresForm = [];
-  operadoresForm.push({nom:'', nombre:'', depto:''});
+  operadoresForm.push({nom:'', nombre:'', depto:'', destino:''});
   renderOpCards();
 }
 
 function addOperador() {
-  if (operadoresForm.length >= 4) { showToast('Máximo 4 operadores por folio'); return; }
-  operadoresForm.push({nom:'', nombre:'', depto:''});
+  if (operadoresForm.length >= 10) { showToast('Máximo 10 personas por solicitud'); return; }
+  operadoresForm.push({nom:'', nombre:'', depto:'', destino:''});
   renderOpCards();
 }
 
@@ -286,19 +266,30 @@ function renderOpCards() {
   for (var i = 0; i < operadoresForm.length; i++) {
     var op = operadoresForm[i];
     html += '<div class="op-card">';
-    html += '<div class="op-num">Operador ' + (i+1) + '</div>';
+    html += '<div class="op-num">👤 Personal #' + (i+1) + '</div>';
     if (operadoresForm.length > 1) {
       html += '<button class="op-remove" onclick="removeOperador(' + i + ')">✕</button>';
     }
-    html += '<div class="grid3">';
+    html += '<div class="grid4">';
+    // Destino
+    html += '<div><label>Destino</label><select onchange="operadoresForm[' + i + '].destino=this.value">';
+    var destinos = ['','CITADEL','HEB','LA FE','Y GRIEGA'];
+    for (var d = 0; d < destinos.length; d++) {
+      var sel = op.destino === destinos[d] ? ' selected' : '';
+      html += '<option value="' + destinos[d] + '"' + sel + '>' + (destinos[d] || '— Seleccionar —') + '</option>';
+    }
+    html += '</select></div>';
+    // Nómina
     html += '<div><label>N. Nómina</label><input type="text" placeholder="Ej. 3317" value="' + op.nom + '" oninput="onNomChange(' + i + ',this.value)"></div>';
+    // Nombre
     html += '<div><label>Nombre</label><input type="text" placeholder="Autocompletado" value="' + op.nombre + '" id="nombre-' + i + '" oninput="operadoresForm[' + i + '].nombre=this.value"></div>';
+    // Departamento
     html += '<div><label>Departamento</label><input type="text" placeholder="Autocompletado" value="' + op.depto + '" id="depto-' + i + '" oninput="operadoresForm[' + i + '].depto=this.value"></div>';
     html += '</div></div>';
   }
   c.innerHTML = html;
-  document.getElementById('op-count-info').textContent = operadoresForm.length + '/4 operadores';
-  document.getElementById('btn-add-op').style.display = operadoresForm.length >= 4 ? 'none' : 'inline-flex';
+  document.getElementById('op-count-info').textContent = operadoresForm.length + '/10 personas';
+  document.getElementById('btn-add-op').style.display = operadoresForm.length >= 10 ? 'none' : 'inline-flex';
 }
 
 function onNomChange(i, val) {
@@ -315,36 +306,43 @@ function onNomChange(i, val) {
 }
 
 function enviarSolicitud() {
-  var destino = document.getElementById('destino').value;
   var solicitante = document.getElementById('solicitante').value.trim();
   var msg = document.getElementById('form-msg');
-  if (!destino) { msg.textContent = 'Selecciona un destino'; return; }
   if (!solicitante) { msg.textContent = 'Ingresa tu nombre'; return; }
   var ops = [];
   for (var i = 0; i < operadoresForm.length; i++) {
     var o = operadoresForm[i];
-    if (o.nom || o.nombre) ops.push({nom:o.nom, nombre:o.nombre, depto:o.depto});
+    if (o.nom || o.nombre) ops.push({nom:o.nom, nombre:o.nombre, depto:o.depto, destino:o.destino});
   }
-  if (ops.length === 0) { msg.textContent = 'Agrega al menos un operador'; return; }
+  if (ops.length === 0) { msg.textContent = 'Agrega al menos una persona'; return; }
   for (var i = 0; i < ops.length; i++) {
-    if (!ops[i].nom || !ops[i].nombre) { msg.textContent = 'Completa nómina y nombre de todos los operadores'; return; }
+    if (!ops[i].nom || !ops[i].nombre) { msg.textContent = 'Completa nómina y nombre de todas las personas'; return; }
+    if (!ops[i].destino) { msg.textContent = 'Selecciona destino para todas las personas'; return; }
   }
   msg.textContent = '';
-  folioActual++;
   var ahora = new Date();
   var fecha = ahora.toLocaleDateString('es-MX', {day:'2-digit', month:'2-digit', year:'numeric'});
   var hora = ahora.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
-  var sol = {id: Date.now(), folio: folioActual, fecha: fecha, hora: hora, destino: destino, solicitante: solicitante, operadores: ops, unidad: '', estado: 'pending', horaLlegada: ''};
+  var sol = {
+    id: Date.now(),
+    fecha: fecha,
+    hora: hora,
+    solicitante: solicitante,
+    operadores: ops,
+    estado: 'pending',
+    folio: '',
+    unidad: ''
+  };
   solicitudes.unshift(sol);
   saveState();
   updateBadge();
   guardarEnSheet(sol);
-  showToast('✅ Solicitud #' + folioActual + ' enviada a vigilancia');
-  document.getElementById('destino').value = '';
+  showToast('✅ Solicitud enviada a vigilancia');
   document.getElementById('solicitante').value = '';
   initForm();
 }
 
+// ---- VIGILANCIA ----
 var filtroActual = 'all';
 function filterSol(f) { filtroActual = f; renderVigilancia(); }
 
@@ -364,31 +362,36 @@ function renderVigilancia() {
   var html = '';
   for (var i = 0; i < data.length; i++) {
     var sol = data[i];
-    var bClass = sol.estado === 'pending' ? 'badge-pending' : sol.estado === 'active' ? 'badge-active' : 'badge-done';
-    var bText = sol.estado === 'pending' ? 'Pendiente' : sol.estado === 'active' ? 'En camino' : 'Completado';
+    var bClass = sol.estado === 'pending' ? 'badge-pending' : 'badge-done';
+    var bText = sol.estado === 'pending' ? 'Pendiente' : 'Completado';
     html += '<div class="sol-card">';
     html += '<div class="sol-header ' + sol.estado + '" onclick="toggleSol(' + sol.id + ')">';
-    html += '<div><span class="sol-folio">Folio #' + sol.folio + '</span><span class="sol-info"> · ' + sol.destino + ' · ' + sol.hora + ' · ' + sol.operadores.length + ' persona(s)</span></div>';
+    html += '<div>';
+    html += '<span class="sol-folio">' + (sol.folio ? 'Folio #' + sol.folio : 'Sin folio') + '</span>';
+    html += '<span class="sol-info"> · ' + sol.solicitante + ' · ' + sol.hora + ' · ' + sol.operadores.length + ' persona(s)</span>';
+    html += '</div>';
     html += '<div style="display:flex;align-items:center;gap:8px">';
     if (sol.unidad) html += '<strong style="font-size:.85rem">🚕 ' + sol.unidad + '</strong>';
-    html += '<span class="badge-status ' + bClass + '">' + bText + '</span></div></div>';
+    html += '<span class="badge-status ' + bClass + '">' + bText + '</span>';
+    html += '</div></div>';
+
     html += '<div class="sol-body" id="body-' + sol.id + '" style="display:none">';
     html += '<div style="margin-bottom:.75rem;font-size:.8rem;color:var(--muted)">Solicitado por: <strong>' + sol.solicitante + '</strong> · ' + sol.fecha + ' ' + sol.hora + '</div>';
-    html += '<table class="ops-table"><thead><tr><th>N. Emp</th><th>Nombre</th><th>Depto.</th></tr></thead><tbody>';
+    html += '<table class="ops-table"><thead><tr><th>N. Emp</th><th>Nombre</th><th>Depto.</th><th>Destino</th></tr></thead><tbody>';
     for (var j = 0; j < sol.operadores.length; j++) {
       var op = sol.operadores[j];
-      html += '<tr><td>' + op.nom + '</td><td>' + op.nombre + '</td><td>' + (op.depto||'—') + '</td></tr>';
+      html += '<tr><td>' + op.nom + '</td><td>' + op.nombre + '</td><td>' + (op.depto||'—') + '</td><td>' + (op.destino||'—') + '</td></tr>';
     }
     html += '</tbody></table>';
+
     if (sol.estado !== 'done') {
       html += '<div style="margin-top:1rem;display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap">';
-      html += '<div><label>Número de unidad</label><input type="text" placeholder="Ej. M-22, 21, U06..." id="unidad-' + sol.id + '" value="' + sol.unidad + '" style="width:180px"></div>';
-      html += '<div style="display:flex;gap:.5rem">';
-      if (sol.estado === 'pending') html += '<button class="btn btn-sm btn-outline" onclick="marcarActivo(' + sol.id + ')">📞 Taxi solicitado</button>';
-      html += '<button class="btn btn-sm btn-success" onclick="completar(' + sol.id + ')">✅ Taxi llegó</button>';
-      html += '</div></div>';
+      html += '<div><label>Folio (del boleto)</label><input type="text" placeholder="Ej. 16065" id="folio-' + sol.id + '" value="' + (sol.folio||'') + '" style="width:150px"></div>';
+      html += '<div><label>Número de unidad</label><input type="text" placeholder="Ej. M-22, 21..." id="unidad-' + sol.id + '" value="' + (sol.unidad||'') + '" style="width:150px"></div>';
+      html += '<div style="padding-bottom:2px"><button class="btn btn-success" onclick="guardarRegistro(' + sol.id + ')">💾 Guardar</button></div>';
+      html += '</div>';
     } else {
-      html += '<div style="margin-top:.75rem;font-size:.85rem;color:var(--success)">✅ Completado · Unidad: <strong>' + (sol.unidad||'—') + '</strong> · ' + sol.horaLlegada + '</div>';
+      html += '<div style="margin-top:.75rem;font-size:.85rem;color:var(--success)">✅ Guardado · Folio: <strong>' + (sol.folio||'—') + '</strong> · Unidad: <strong>' + (sol.unidad||'—') + '</strong></div>';
     }
     html += '</div></div>';
   }
@@ -400,35 +403,25 @@ function toggleSol(id) {
   body.style.display = body.style.display === 'none' ? 'block' : 'none';
 }
 
-function marcarActivo(id) {
+function guardarRegistro(id) {
   var s = null;
   for (var i = 0; i < solicitudes.length; i++) { if (solicitudes[i].id === id) { s = solicitudes[i]; break; } }
   if (!s) return;
-  var u = document.getElementById('unidad-' + id).value.trim();
-  if (u) s.unidad = u;
-  s.estado = 'active';
-  saveState();
-  actualizarEnSheet(s);
-  renderVigilancia();
-  showToast('Folio #' + s.folio + ' marcado como en camino');
-}
-
-function completar(id) {
-  var s = null;
-  for (var i = 0; i < solicitudes.length; i++) { if (solicitudes[i].id === id) { s = solicitudes[i]; break; } }
-  if (!s) return;
-  var u = document.getElementById('unidad-' + id).value.trim();
-  if (!u) { showToast('⚠ Ingresa el número de unidad'); return; }
-  s.unidad = u;
+  var folio = document.getElementById('folio-' + id).value.trim();
+  var unidad = document.getElementById('unidad-' + id).value.trim();
+  if (!folio) { showToast('⚠ Ingresa el número de folio'); return; }
+  if (!unidad) { showToast('⚠ Ingresa el número de unidad'); return; }
+  s.folio = folio;
+  s.unidad = unidad;
   s.estado = 'done';
-  s.horaLlegada = new Date().toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
   saveState();
   updateBadge();
   actualizarEnSheet(s);
   renderVigilancia();
-  showToast('✅ Folio #' + s.folio + ' completado · Unidad ' + u);
+  showToast('✅ Folio #' + folio + ' guardado · Unidad ' + unidad);
 }
 
+// ---- BITACORA ----
 function renderBitacora() {
   var fil = document.getElementById('fil-fecha').value;
   var tbody = document.getElementById('tbody-bitacora');
@@ -438,7 +431,7 @@ function renderBitacora() {
     var sol = solicitudes[i];
     for (var j = 0; j < sol.operadores.length; j++) {
       var op = sol.operadores[j];
-      filas.push({fecha:sol.fecha, folio:sol.folio, nom:op.nom, nombre:op.nombre, depto:op.depto||'—', destino:sol.destino, unidad:sol.unidad||'—', estado:sol.estado});
+      filas.push({fecha:sol.fecha, folio:sol.folio||'—', nom:op.nom, nombre:op.nombre, depto:op.depto||'—', destino:op.destino||'—', unidad:sol.unidad||'—'});
     }
   }
   if (fil) {
@@ -448,47 +441,59 @@ function renderBitacora() {
     for (var i = 0; i < filas.length; i++) { if (filas[i].fecha === ff) filtered.push(filas[i]); }
     filas = filtered;
   }
+  // Ordenar por folio
+  filas.sort(function(a, b) {
+    var fa = isNaN(a.folio) ? a.folio : parseInt(a.folio);
+    var fb = isNaN(b.folio) ? b.folio : parseInt(b.folio);
+    if (fa < fb) return -1;
+    if (fa > fb) return 1;
+    return 0;
+  });
   if (filas.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   var html = '';
   for (var i = 0; i < filas.length; i++) {
     var f = filas[i];
-    var bClass = f.estado === 'pending' ? 'badge-pending' : f.estado === 'active' ? 'badge-active' : 'badge-done';
-    var bText = f.estado === 'pending' ? 'Pendiente' : f.estado === 'active' ? 'En camino' : 'Completado';
-    html += '<tr><td>' + f.fecha + '</td><td><strong>' + f.folio + '</strong></td><td>' + f.nom + '</td><td>' + f.nombre + '</td><td>' + f.depto + '</td><td>' + f.destino + '</td><td>' + f.unidad + '</td><td><span class="badge-status ' + bClass + '">' + bText + '</span></td></tr>';
+    html += '<tr><td>' + f.fecha + '</td><td><strong>' + f.folio + '</strong></td><td>' + f.nom + '</td><td>' + f.nombre + '</td><td>' + f.depto + '</td><td>' + f.destino + '</td><td>' + f.unidad + '</td></tr>';
   }
   tbody.innerHTML = html;
 }
 
 function exportarCSV() {
   var lines = ['FECHA,FOLIO,N. EMP,NOMBRE,DEPARTAMENTO,DESTINO,UNIDAD'];
+  var filas = [];
   for (var i = 0; i < solicitudes.length; i++) {
     var sol = solicitudes[i];
     for (var j = 0; j < sol.operadores.length; j++) {
       var op = sol.operadores[j];
-      lines.push([sol.fecha, sol.folio, op.nom, op.nombre, op.depto||'', sol.destino, sol.unidad||''].join(','));
+      filas.push({folio: sol.folio||'', fecha:sol.fecha, nom:op.nom, nombre:op.nombre, depto:op.depto||'', destino:op.destino||'', unidad:sol.unidad||''});
     }
+  }
+  filas.sort(function(a,b){ return (parseInt(a.folio)||0)-(parseInt(b.folio)||0); });
+  for (var i = 0; i < filas.length; i++) {
+    var f = filas[i];
+    lines.push([f.fecha, f.folio, f.nom, f.nombre, f.depto, f.destino, f.unidad].join(','));
   }
   var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
   var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url; a.download = 'bitacora_taxis.csv'; a.click();
+  var a = document.createElement('a'); a.href = url; a.download = 'bitacora_taxis.csv'; a.click();
 }
 
+// ---- GOOGLE SHEETS ----
 function guardarEnSheet(sol) {
   var filas = [];
   for (var i = 0; i < sol.operadores.length; i++) {
     var op = sol.operadores[i];
-    filas.push([sol.fecha, sol.folio, op.nom, op.nombre, op.depto||'', sol.destino, '', 'PENDING', sol.hora, sol.solicitante, sol.id]);
+    filas.push([sol.fecha, '', op.nom, op.nombre, op.depto||'', op.destino||'', '', 'PENDING', sol.hora, sol.solicitante, sol.id]);
   }
   fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'insert', rows:filas})}).catch(function(){});
-  fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'setFolio', folio:folioActual})}).catch(function(){});
 }
 
 function actualizarEnSheet(sol) {
-  fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'update', id:sol.id, unidad:sol.unidad, estado:sol.estado, horaLlegada:sol.horaLlegada})}).catch(function(){});
+  fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'update', id:sol.id, folio:sol.folio, unidad:sol.unidad, estado:sol.estado})}).catch(function(){});
 }
 
+// ---- BADGE / TOAST ----
 function updateBadge() {
   var n = 0;
   for (var i = 0; i < solicitudes.length; i++) { if (solicitudes[i].estado === 'pending') n++; }
@@ -503,10 +508,10 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove('show'); }, 3000);
 }
 
+// ---- INIT ----
 initForm();
 updateBadge();
 cargarPersonal();
-cargarFolio();
 </script>
 </body>
 </html>
