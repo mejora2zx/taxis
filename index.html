@@ -43,7 +43,6 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(13,2
 .sol-header.pending{background:var(--pending)}
 .sol-header.done{background:var(--done)}
 .sol-body{padding:1rem;border-top:1px solid var(--border);background:#fff}
-/* tabla personas en vigilancia */
 .vig-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:.5rem}
 .vig-table th{background:var(--gray);padding:7px 10px;text-align:left;font-size:.75rem;text-transform:uppercase;color:var(--muted);font-weight:600}
 .vig-table td{padding:8px 10px;border-top:1px solid var(--border);vertical-align:middle}
@@ -85,7 +84,6 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
 
 <main>
 
-  <!-- SOLICITAR -->
   <div class="section active" id="sec-solicitar">
     <div class="card">
       <div class="card-title">📋 Nueva solicitud de taxi</div>
@@ -108,7 +106,6 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     </div>
   </div>
 
-  <!-- VIGILANCIA -->
   <div class="section" id="sec-vigilancia">
     <div class="card" style="margin-bottom:1rem">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
@@ -123,7 +120,6 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     <div id="sol-list"></div>
   </div>
 
-  <!-- BITACORA -->
   <div class="section" id="sec-bitacora">
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem">
@@ -148,7 +144,6 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     </div>
   </div>
 
-  <!-- LOGIN -->
   <div class="section" id="sec-login">
     <div class="login-box">
       <div style="font-size:2rem;margin-bottom:.75rem">🔒</div>
@@ -177,7 +172,6 @@ function saveState() {
   localStorage.setItem('zx_taxis_sol', JSON.stringify(solicitudes));
 }
 
-// ---- NAVEGACION ----
 function showSection(id, btn) {
   var secs = document.querySelectorAll('.section');
   for (var i = 0; i < secs.length; i++) secs[i].classList.remove('active');
@@ -216,7 +210,6 @@ function verificarPass() {
   }
 }
 
-// ---- PERSONAL ----
 function cargarPersonal() {
   var cbName = 'cbP_' + Date.now();
   var script = document.createElement('script');
@@ -235,7 +228,6 @@ function cargarPersonal() {
   document.head.appendChild(script);
 }
 
-// ---- FORM SOLICITAR ----
 function initForm() {
   operadoresForm = [];
   operadoresForm.push({nom:'', nombre:'', depto:'', destino:''});
@@ -320,11 +312,15 @@ function enviarSolicitud() {
   initForm();
 }
 
-// ---- VIGILANCIA ----
 var filtroActual = 'all';
 function filterSol(f) { filtroActual = f; renderVigilancia(); }
 
 function renderVigilancia() {
+  var abiertos = {};
+  var cuerpos = document.querySelectorAll('.sol-body');
+  for (var k = 0; k < cuerpos.length; k++) {
+    if (cuerpos[k].style.display === 'block') abiertos[cuerpos[k].id] = true;
+  }
   var list = document.getElementById('sol-list');
   var data = [];
   for (var i = 0; i < solicitudes.length; i++) {
@@ -344,32 +340,20 @@ function renderVigilancia() {
     for (var j = 0; j < sol.operadores.length; j++) { if (!sol.operadores[j].guardado) pendientes++; }
     var bClass = sol.estado === 'pending' ? 'badge-pending' : 'badge-done';
     var bText = sol.estado === 'pending' ? 'Pendiente (' + pendientes + ')' : 'Completado';
-
     html += '<div class="sol-card">';
     html += '<div class="sol-header ' + sol.estado + '" onclick="toggleSol(' + sol.id + ')">';
     html += '<div><span style="font-weight:700;font-size:1rem">' + sol.solicitante + '</span>';
     html += '<span style="font-size:.8rem;color:var(--muted)"> · ' + sol.hora + ' · ' + sol.operadores.length + ' persona(s)</span></div>';
-    html += '<span class="badge-status ' + bClass + '">' + bText + '</span>';
-    html += '</div>';
-
+    html += '<span class="badge-status ' + bClass + '">' + bText + '</span></div>';
     html += '<div class="sol-body" id="body-' + sol.id + '" style="display:none">';
     html += '<div style="font-size:.8rem;color:var(--muted);margin-bottom:.75rem">Solicitado por: <strong>' + sol.solicitante + '</strong> · ' + sol.fecha + ' ' + sol.hora + '</div>';
-
-    html += '<table class="vig-table">';
-    html += '<thead><tr><th>N. Emp</th><th>Nombre</th><th>Depto.</th><th>Destino</th><th>Folio</th><th>Unidad</th><th></th></tr></thead><tbody>';
-
+    html += '<table class="vig-table"><thead><tr><th>N. Emp</th><th>Nombre</th><th>Depto.</th><th>Destino</th><th>Folio</th><th>Unidad</th><th></th></tr></thead><tbody>';
     for (var j = 0; j < sol.operadores.length; j++) {
       var op = sol.operadores[j];
-      var rowClass = op.guardado ? ' class="done-row"' : '';
-      html += '<tr' + rowClass + '>';
-      html += '<td>' + op.nom + '</td>';
-      html += '<td>' + op.nombre + '</td>';
-      html += '<td>' + (op.depto||'—') + '</td>';
-      html += '<td>' + (op.destino||'—') + '</td>';
+      html += '<tr' + (op.guardado ? ' class="done-row"' : '') + '>';
+      html += '<td>' + op.nom + '</td><td>' + op.nombre + '</td><td>' + (op.depto||'—') + '</td><td>' + (op.destino||'—') + '</td>';
       if (op.guardado) {
-        html += '<td><strong>' + (op.folio||'—') + '</strong></td>';
-        html += '<td><strong>' + (op.unidad||'—') + '</strong></td>';
-        html += '<td style="color:var(--success);font-size:.8rem">✅</td>';
+        html += '<td><strong>' + (op.folio||'—') + '</strong></td><td><strong>' + (op.unidad||'—') + '</strong></td><td style="color:var(--success)">✅</td>';
       } else {
         html += '<td><input type="text" placeholder="Folio" id="folio-' + sol.id + '-' + j + '" style="min-width:90px"></td>';
         html += '<td><input type="text" placeholder="Unidad" id="unidad-' + sol.id + '-' + j + '" style="min-width:90px"></td>';
@@ -377,10 +361,13 @@ function renderVigilancia() {
       }
       html += '</tr>';
     }
-    html += '</tbody></table>';
-    html += '</div></div>';
+    html += '</tbody></table></div></div>';
   }
   list.innerHTML = html;
+  for (var bodyId in abiertos) {
+    var el = document.getElementById(bodyId);
+    if (el) el.style.display = 'block';
+  }
 }
 
 function toggleSol(id) {
@@ -399,7 +386,6 @@ function guardarPersona(solId, opIdx) {
   s.operadores[opIdx].folio = folio;
   s.operadores[opIdx].unidad = unidad;
   s.operadores[opIdx].guardado = true;
-  // Verificar si todos están guardados
   var todos = true;
   for (var i = 0; i < s.operadores.length; i++) { if (!s.operadores[i].guardado) { todos = false; break; } }
   if (todos) s.estado = 'done';
@@ -410,7 +396,6 @@ function guardarPersona(solId, opIdx) {
   showToast('✅ Guardado · Folio ' + folio + ' · Unidad ' + unidad);
 }
 
-// ---- BITACORA ----
 function getBitacoraFilas() {
   var filas = [];
   for (var i = 0; i < solicitudes.length; i++) {
@@ -435,11 +420,7 @@ function renderBitacora() {
     for (var i = 0; i < filas.length; i++) { if (filas[i].fecha === ff) filtered.push(filas[i]); }
     filas = filtered;
   }
-  filas.sort(function(a, b) {
-    var fa = parseInt(a.folio) || 0;
-    var fb = parseInt(b.folio) || 0;
-    return fa - fb;
-  });
+  filas.sort(function(a,b){ return (parseInt(a.folio)||0)-(parseInt(b.folio)||0); });
   if (filas.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   var html = '';
@@ -463,12 +444,10 @@ function exportarCSV() {
   var a = document.createElement('a'); a.href = url; a.download = 'bitacora_taxis.csv'; a.click();
 }
 
-// ---- GOOGLE SHEETS ----
 function guardarEnSheet(sol) {
   var filas = [];
   for (var i = 0; i < sol.operadores.length; i++) {
     var op = sol.operadores[i];
-    // FECHA, FOLIO, N.EMP, NOMBRE, DEPTO, DESTINO, UNIDAD, ESTADO, HORA, SOLICITANTE, ID_SOL, IDX_OP
     filas.push([sol.fecha, '', op.nom, op.nombre, op.depto||'', op.destino||'', '', 'PENDING', sol.hora, sol.solicitante, sol.id, i]);
   }
   fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'insert', rows:filas})}).catch(function(){});
@@ -477,16 +456,10 @@ function guardarEnSheet(sol) {
 function actualizarPersonaEnSheet(sol, opIdx) {
   var op = sol.operadores[opIdx];
   fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
-    action: 'updatePersona',
-    id: sol.id,
-    opIdx: opIdx,
-    folio: op.folio,
-    unidad: op.unidad,
-    estado: 'DONE'
+    action:'updatePersona', id:sol.id, opIdx:opIdx, folio:op.folio, unidad:op.unidad, estado:'DONE'
   })}).catch(function(){});
 }
 
-// ---- BADGE / TOAST ----
 function updateBadge() {
   var n = 0;
   for (var i = 0; i < solicitudes.length; i++) { if (solicitudes[i].estado === 'pending') n++; }
@@ -501,7 +474,6 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove('show'); }, 3000);
 }
 
-// ---- INIT ----
 initForm();
 updateBadge();
 cargarPersonal();
