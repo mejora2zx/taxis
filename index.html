@@ -21,6 +21,7 @@ main{max-width:960px;margin:0 auto;padding:1.5rem}
 label{display:block;font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase}
 input,select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:.9rem;color:var(--text);background:#fff;outline:none;transition:.2s}
 input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(13,24,168,.1)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
 .grid4{display:grid;grid-template-columns:1.2fr 1fr 1.8fr 1.5fr;gap:.75rem}
 .op-card{background:var(--gray);border:1px solid var(--border);border-radius:8px;padding:1rem;position:relative;margin-bottom:.75rem}
 .op-num{font-size:.75rem;font-weight:700;color:var(--blue);margin-bottom:.6rem}
@@ -84,16 +85,28 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
 
 <main>
 
+  <!-- SOLICITAR -->
   <div class="section active" id="sec-solicitar">
     <div class="card">
       <div class="card-title">📋 Nueva solicitud de taxi</div>
       <div id="personal-status" style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">
         <span class="spinner"></span> Cargando catálogo de personal...
       </div>
-      <div style="margin-bottom:1.25rem">
-        <label>Solicitante (supervisor)</label>
-        <input type="text" id="solicitante" placeholder="Tu nombre" style="max-width:380px">
+
+      <!-- Solicitante -->
+      <div style="margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border)">
+        <div class="grid2">
+          <div>
+            <label>N. Nómina Solicitante</label>
+            <input type="text" id="sol-nom" placeholder="Ej. 3317" oninput="onSolNomChange(this.value)">
+          </div>
+          <div>
+            <label>Nombre Solicitante</label>
+            <input type="text" id="sol-nombre" placeholder="Autocompletado" oninput="solNombreManual=this.value">
+          </div>
+        </div>
       </div>
+
       <div id="ops-container"></div>
       <div class="btn-row">
         <button class="btn btn-outline btn-sm" id="btn-add-op" onclick="addOperador()">+ Agregar persona</button>
@@ -106,6 +119,7 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     </div>
   </div>
 
+  <!-- VIGILANCIA -->
   <div class="section" id="sec-vigilancia">
     <div class="card" style="margin-bottom:1rem">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
@@ -120,6 +134,7 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     <div id="sol-list"></div>
   </div>
 
+  <!-- BITACORA -->
   <div class="section" id="sec-bitacora">
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem">
@@ -133,7 +148,7 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
       <div class="tbl-wrap">
         <table class="bitacora">
           <thead>
-            <tr><th>Fecha</th><th>Folio</th><th>N. Emp</th><th>Nombre</th><th>Dpto.</th><th>Destino</th><th>Unidad</th></tr>
+            <tr><th>Fecha</th><th>N. Emp</th><th>Nombre</th><th>Dpto.</th><th>Destino</th><th>Unidad</th><th>Solicitante</th></tr>
           </thead>
           <tbody id="tbody-bitacora"></tbody>
         </table>
@@ -144,6 +159,7 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     </div>
   </div>
 
+  <!-- LOGIN -->
   <div class="section" id="sec-login">
     <div class="login-box">
       <div style="font-size:2rem;margin-bottom:.75rem">🔒</div>
@@ -164,14 +180,14 @@ var PASS = 'vig2026';
 var solicitudes = JSON.parse(localStorage.getItem('zx_taxis_sol') || '[]');
 var personal = [];
 var operadoresForm = [];
+var solNombreManual = '';
 var accesoVigilancia = false;
 var seccionPendiente = '';
 var tabPendiente = null;
 
-function saveState() {
-  localStorage.setItem('zx_taxis_sol', JSON.stringify(solicitudes));
-}
+function saveState() { localStorage.setItem('zx_taxis_sol', JSON.stringify(solicitudes)); }
 
+// ---- NAVEGACION ----
 function showSection(id, btn) {
   var secs = document.querySelectorAll('.section');
   for (var i = 0; i < secs.length; i++) secs[i].classList.remove('active');
@@ -185,8 +201,7 @@ function showSection(id, btn) {
 
 function pedirAcceso(seccion, btn) {
   if (accesoVigilancia) { showSection(seccion, btn); return; }
-  seccionPendiente = seccion;
-  tabPendiente = btn;
+  seccionPendiente = seccion; tabPendiente = btn;
   var secs = document.querySelectorAll('.section');
   for (var i = 0; i < secs.length; i++) secs[i].classList.remove('active');
   var tabs = document.querySelectorAll('.tab');
@@ -199,8 +214,7 @@ function pedirAcceso(seccion, btn) {
 }
 
 function verificarPass() {
-  var val = document.getElementById('input-pass').value;
-  if (val === PASS) {
+  if (document.getElementById('input-pass').value === PASS) {
     accesoVigilancia = true;
     showSection(seccionPendiente, tabPendiente);
   } else {
@@ -210,6 +224,7 @@ function verificarPass() {
   }
 }
 
+// ---- PERSONAL ----
 function cargarPersonal() {
   var cbName = 'cbP_' + Date.now();
   var script = document.createElement('script');
@@ -228,15 +243,31 @@ function cargarPersonal() {
   document.head.appendChild(script);
 }
 
+function buscarPersonal(nom) {
+  for (var j = 0; j < personal.length; j++) {
+    if (String(personal[j].nom).trim() === String(nom).trim()) return personal[j];
+  }
+  return null;
+}
+
+function onSolNomChange(val) {
+  var match = buscarPersonal(val);
+  if (match) {
+    document.getElementById('sol-nombre').value = match.nombre;
+    solNombreManual = match.nombre;
+  }
+}
+
+// ---- FORM SOLICITAR ----
 function initForm() {
   operadoresForm = [];
-  operadoresForm.push({nom:'', nombre:'', depto:'', destino:''});
+  operadoresForm.push({nom:'', nombre:'', depto:'', destino:'', destinoCustom:''});
   renderOpCards();
 }
 
 function addOperador() {
   if (operadoresForm.length >= 10) { showToast('Máximo 10 personas por solicitud'); return; }
-  operadoresForm.push({nom:'', nombre:'', depto:'', destino:''});
+  operadoresForm.push({nom:'', nombre:'', depto:'', destino:'', destinoCustom:''});
   renderOpCards();
 }
 
@@ -246,23 +277,35 @@ function removeOperador(i) {
   renderOpCards();
 }
 
+function onDestinoChange(i, val) {
+  operadoresForm[i].destino = val;
+  var custom = document.getElementById('destino-custom-' + i);
+  if (custom) custom.style.display = val === 'OTRO' ? 'block' : 'none';
+}
+
 function renderOpCards() {
   var c = document.getElementById('ops-container');
   var html = '';
-  var destinos = ['','CITADEL','HEB','LA FE','Y GRIEGA'];
+  var destinos = ['', 'LA CHONA', 'HEB UNIVERSIDAD', 'OTRO'];
   for (var i = 0; i < operadoresForm.length; i++) {
     var op = operadoresForm[i];
     html += '<div class="op-card">';
     html += '<div class="op-num">👤 Personal #' + (i+1) + '</div>';
     if (operadoresForm.length > 1) html += '<button class="op-remove" onclick="removeOperador(' + i + ')">✕</button>';
     html += '<div class="grid4">';
-    html += '<div><label>Destino</label><select onchange="operadoresForm[' + i + '].destino=this.value">';
+    // Destino
+    html += '<div><label>Destino</label><select onchange="onDestinoChange(' + i + ',this.value)">';
     for (var d = 0; d < destinos.length; d++) {
       html += '<option value="' + destinos[d] + '"' + (op.destino===destinos[d]?' selected':'') + '>' + (destinos[d]||'— Seleccionar —') + '</option>';
     }
-    html += '</select></div>';
+    html += '</select>';
+    html += '<input type="text" placeholder="Especifica el destino" id="destino-custom-' + i + '" style="margin-top:6px;display:' + (op.destino==='OTRO'?'block':'none') + '" value="' + (op.destinoCustom||'') + '" oninput="operadoresForm[' + i + '].destinoCustom=this.value">';
+    html += '</div>';
+    // Nómina
     html += '<div><label>N. Nómina</label><input type="text" placeholder="Ej. 3317" value="' + op.nom + '" oninput="onNomChange(' + i + ',this.value)"></div>';
+    // Nombre
     html += '<div><label>Nombre</label><input type="text" placeholder="Autocompletado" value="' + op.nombre + '" id="nombre-' + i + '" oninput="operadoresForm[' + i + '].nombre=this.value"></div>';
+    // Depto
     html += '<div><label>Departamento</label><input type="text" placeholder="Autocompletado" value="' + op.depto + '" id="depto-' + i + '" oninput="operadoresForm[' + i + '].depto=this.value"></div>';
     html += '</div></div>';
   }
@@ -273,25 +316,27 @@ function renderOpCards() {
 
 function onNomChange(i, val) {
   operadoresForm[i].nom = val;
-  for (var j = 0; j < personal.length; j++) {
-    if (String(personal[j].nom).trim() === String(val).trim()) {
-      operadoresForm[i].nombre = personal[j].nombre;
-      operadoresForm[i].depto = personal[j].depto;
-      document.getElementById('nombre-' + i).value = personal[j].nombre;
-      document.getElementById('depto-' + i).value = personal[j].depto;
-      break;
-    }
+  var match = buscarPersonal(val);
+  if (match) {
+    operadoresForm[i].nombre = match.nombre;
+    operadoresForm[i].depto = match.depto;
+    document.getElementById('nombre-' + i).value = match.nombre;
+    document.getElementById('depto-' + i).value = match.depto;
   }
 }
 
 function enviarSolicitud() {
-  var solicitante = document.getElementById('solicitante').value.trim();
+  var solNom = document.getElementById('sol-nom').value.trim();
+  var solNombre = document.getElementById('sol-nombre').value.trim();
   var msg = document.getElementById('form-msg');
-  if (!solicitante) { msg.textContent = 'Ingresa tu nombre'; return; }
+  if (!solNom || !solNombre) { msg.textContent = 'Ingresa nómina y nombre del solicitante'; return; }
   var ops = [];
   for (var i = 0; i < operadoresForm.length; i++) {
     var o = operadoresForm[i];
-    if (o.nom || o.nombre) ops.push({nom:o.nom, nombre:o.nombre, depto:o.depto, destino:o.destino, folio:'', unidad:'', guardado:false});
+    if (o.nom || o.nombre) {
+      var destFinal = o.destino === 'OTRO' ? (o.destinoCustom||'OTRO') : o.destino;
+      ops.push({nom:o.nom, nombre:o.nombre, depto:o.depto, destino:destFinal, unidad:'', guardado:false});
+    }
   }
   if (ops.length === 0) { msg.textContent = 'Agrega al menos una persona'; return; }
   for (var i = 0; i < ops.length; i++) {
@@ -302,16 +347,38 @@ function enviarSolicitud() {
   var ahora = new Date();
   var fecha = ahora.toLocaleDateString('es-MX', {day:'2-digit', month:'2-digit', year:'numeric'});
   var hora = ahora.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
-  var sol = {id:Date.now(), fecha:fecha, hora:hora, solicitante:solicitante, operadores:ops, estado:'pending'};
+  var sol = {id:Date.now(), fecha:fecha, hora:hora, solicitante:solNombre, solNom:solNom, operadores:ops, estado:'pending'};
   solicitudes.unshift(sol);
   saveState();
   updateBadge();
+  notificarVigilancia();
   guardarEnSheet(sol);
   showToast('✅ Solicitud enviada a vigilancia');
-  document.getElementById('solicitante').value = '';
+  document.getElementById('sol-nom').value = '';
+  document.getElementById('sol-nombre').value = '';
+  solNombreManual = '';
   initForm();
 }
 
+// ---- NOTIFICACIONES PUSH ----
+function solicitarPermisoNotificaciones() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function notificarVigilancia() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    new Notification('🚖 Nueva solicitud de taxi', {
+      body: 'Hay una nueva solicitud pendiente en el panel de vigilancia.',
+      icon: 'https://cdn-icons-png.flaticon.com/512/870/870175.png'
+    });
+  }
+}
+
+// ---- VIGILANCIA ----
 var filtroActual = 'all';
 function filterSol(f) { filtroActual = f; renderVigilancia(); }
 
@@ -347,16 +414,15 @@ function renderVigilancia() {
     html += '<span class="badge-status ' + bClass + '">' + bText + '</span></div>';
     html += '<div class="sol-body" id="body-' + sol.id + '" style="display:none">';
     html += '<div style="font-size:.8rem;color:var(--muted);margin-bottom:.75rem">Solicitado por: <strong>' + sol.solicitante + '</strong> · ' + sol.fecha + ' ' + sol.hora + '</div>';
-    html += '<table class="vig-table"><thead><tr><th>N. Emp</th><th>Nombre</th><th>Depto.</th><th>Destino</th><th>Folio</th><th>Unidad</th><th></th></tr></thead><tbody>';
+    html += '<table class="vig-table"><thead><tr><th>N. Emp</th><th>Nombre</th><th>Depto.</th><th>Destino</th><th>Unidad</th><th></th></tr></thead><tbody>';
     for (var j = 0; j < sol.operadores.length; j++) {
       var op = sol.operadores[j];
       html += '<tr' + (op.guardado ? ' class="done-row"' : '') + '>';
       html += '<td>' + op.nom + '</td><td>' + op.nombre + '</td><td>' + (op.depto||'—') + '</td><td>' + (op.destino||'—') + '</td>';
       if (op.guardado) {
-        html += '<td><strong>' + (op.folio||'—') + '</strong></td><td><strong>' + (op.unidad||'—') + '</strong></td><td style="color:var(--success)">✅</td>';
+        html += '<td><strong>' + (op.unidad||'—') + '</strong></td><td style="color:var(--success)">✅</td>';
       } else {
-        html += '<td><input type="text" placeholder="Folio" id="folio-' + sol.id + '-' + j + '" style="min-width:90px"></td>';
-        html += '<td><input type="text" placeholder="Unidad" id="unidad-' + sol.id + '-' + j + '" style="min-width:90px"></td>';
+        html += '<td><input type="text" placeholder="Ej. M-22" id="unidad-' + sol.id + '-' + j + '" style="min-width:100px"></td>';
         html += '<td><button class="btn btn-sm btn-success" onclick="guardarPersona(' + sol.id + ',' + j + ')">💾</button></td>';
       }
       html += '</tr>';
@@ -379,11 +445,8 @@ function guardarPersona(solId, opIdx) {
   var s = null;
   for (var i = 0; i < solicitudes.length; i++) { if (solicitudes[i].id === solId) { s = solicitudes[i]; break; } }
   if (!s) return;
-  var folio = document.getElementById('folio-' + solId + '-' + opIdx).value.trim();
   var unidad = document.getElementById('unidad-' + solId + '-' + opIdx).value.trim();
-  if (!folio) { showToast('⚠ Ingresa el folio'); return; }
-  if (!unidad) { showToast('⚠ Ingresa la unidad'); return; }
-  s.operadores[opIdx].folio = folio;
+  if (!unidad) { showToast('⚠ Ingresa el número de unidad'); return; }
   s.operadores[opIdx].unidad = unidad;
   s.operadores[opIdx].guardado = true;
   var todos = true;
@@ -393,16 +456,17 @@ function guardarPersona(solId, opIdx) {
   updateBadge();
   actualizarPersonaEnSheet(s, opIdx);
   renderVigilancia();
-  showToast('✅ Guardado · Folio ' + folio + ' · Unidad ' + unidad);
+  showToast('✅ Unidad ' + unidad + ' guardada');
 }
 
+// ---- BITACORA ----
 function getBitacoraFilas() {
   var filas = [];
   for (var i = 0; i < solicitudes.length; i++) {
     var sol = solicitudes[i];
     for (var j = 0; j < sol.operadores.length; j++) {
       var op = sol.operadores[j];
-      filas.push({fecha:sol.fecha, folio:op.folio||'', nom:op.nom, nombre:op.nombre, depto:op.depto||'—', destino:op.destino||'—', unidad:op.unidad||'—'});
+      filas.push({fecha:sol.fecha, nom:op.nom, nombre:op.nombre, depto:op.depto||'—', destino:op.destino||'—', unidad:op.unidad||'—', solicitante:sol.solicitante});
     }
   }
   return filas;
@@ -416,34 +480,31 @@ function renderBitacora() {
   if (fil) {
     var parts = fil.split('-');
     var ff = parts[2] + '/' + parts[1] + '/' + parts[0];
-    var filtered = [];
-    for (var i = 0; i < filas.length; i++) { if (filas[i].fecha === ff) filtered.push(filas[i]); }
-    filas = filtered;
+    filas = filas.filter(function(f){ return f.fecha === ff; });
   }
-  filas.sort(function(a,b){ return (parseInt(a.folio)||0)-(parseInt(b.folio)||0); });
   if (filas.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   var html = '';
   for (var i = 0; i < filas.length; i++) {
     var f = filas[i];
-    html += '<tr><td>' + f.fecha + '</td><td><strong>' + (f.folio||'—') + '</strong></td><td>' + f.nom + '</td><td>' + f.nombre + '</td><td>' + f.depto + '</td><td>' + f.destino + '</td><td>' + f.unidad + '</td></tr>';
+    html += '<tr><td>' + f.fecha + '</td><td>' + f.nom + '</td><td>' + f.nombre + '</td><td>' + f.depto + '</td><td>' + f.destino + '</td><td>' + f.unidad + '</td><td>' + f.solicitante + '</td></tr>';
   }
   tbody.innerHTML = html;
 }
 
 function exportarCSV() {
   var filas = getBitacoraFilas();
-  filas.sort(function(a,b){ return (parseInt(a.folio)||0)-(parseInt(b.folio)||0); });
-  var lines = ['FECHA,FOLIO,N. EMP,NOMBRE,DEPARTAMENTO,DESTINO,UNIDAD'];
+  var lines = ['FECHA,N. EMP,NOMBRE,DEPARTAMENTO,DESTINO,UNIDAD,SOLICITANTE'];
   for (var i = 0; i < filas.length; i++) {
     var f = filas[i];
-    lines.push([f.fecha, f.folio, f.nom, f.nombre, f.depto, f.destino, f.unidad].join(','));
+    lines.push([f.fecha, f.nom, f.nombre, f.depto, f.destino, f.unidad, f.solicitante].join(','));
   }
   var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a'); a.href = url; a.download = 'bitacora_taxis.csv'; a.click();
 }
 
+// ---- GOOGLE SHEETS ----
 function guardarEnSheet(sol) {
   var filas = [];
   for (var i = 0; i < sol.operadores.length; i++) {
@@ -456,10 +517,11 @@ function guardarEnSheet(sol) {
 function actualizarPersonaEnSheet(sol, opIdx) {
   var op = sol.operadores[opIdx];
   fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
-    action:'updatePersona', id:sol.id, opIdx:opIdx, folio:op.folio, unidad:op.unidad, estado:'DONE'
+    action:'updatePersona', id:sol.id, opIdx:opIdx, unidad:op.unidad, estado:'DONE'
   })}).catch(function(){});
 }
 
+// ---- BADGE / TOAST ----
 function updateBadge() {
   var n = 0;
   for (var i = 0; i < solicitudes.length; i++) { if (solicitudes[i].estado === 'pending') n++; }
@@ -474,9 +536,11 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove('show'); }, 3000);
 }
 
+// ---- INIT ----
 initForm();
 updateBadge();
 cargarPersonal();
+solicitarPermisoNotificaciones();
 </script>
 </body>
 </html>
