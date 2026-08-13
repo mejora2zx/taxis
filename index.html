@@ -540,20 +540,21 @@ function guardarEnSheet(sol) {
   }
   fetch(SCRIPT_URL, {
     method: 'POST',
-    mode: 'no-cors',
-    headers: {'Content-Type': 'text/plain'},
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({action:'insert', rows:filas})
-  }).catch(function(){});
+  }).then(function(r){ return r.json(); })
+  .then(function(d){ if(d.ok) { showToast('✅ Solicitud enviada a vigilancia'); } })
+  .catch(function(err){ console.error('Error insert:', err); });
 }
 
 function actualizarPersonaEnSheet(sol, opIdx) {
   var op = sol.operadores[opIdx];
   fetch(SCRIPT_URL, {
     method: 'POST',
-    mode: 'no-cors',
-    headers: {'Content-Type': 'text/plain'},
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({action:'updatePersona', id:sol.id, opIdx:opIdx, unidad:op.unidad, estado:'DONE'})
-  }).catch(function(){});
+  }).then(function(r){ return r.json(); })
+  .catch(function(err){ console.error('Error update:', err); });
 }
 
 // ---- BADGE / TOAST ----
