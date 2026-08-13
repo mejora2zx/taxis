@@ -538,14 +538,22 @@ function guardarEnSheet(sol) {
     var op = sol.operadores[i];
     filas.push([sol.fecha, '', op.nom, op.nombre, op.depto||'', op.destino||'', '', 'PENDING', sol.hora, sol.solicitante, sol.id, i]);
   }
-  fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'insert', rows:filas})}).catch(function(){});
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify({action:'insert', rows:filas})
+  }).catch(function(){});
 }
 
 function actualizarPersonaEnSheet(sol, opIdx) {
   var op = sol.operadores[opIdx];
-  fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
-    action:'updatePersona', id:sol.id, opIdx:opIdx, unidad:op.unidad, estado:'DONE'
-  })}).catch(function(){});
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify({action:'updatePersona', id:sol.id, opIdx:opIdx, unidad:op.unidad, estado:'DONE'})
+  }).catch(function(){});
 }
 
 // ---- BADGE / TOAST ----
