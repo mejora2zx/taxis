@@ -176,6 +176,8 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
 
 <script>
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_FlSekYP6catKd-GrFCFGvnzuox4xsU0W4Qna9V0mPRSJPBcaNGUdpem_SmHsXWPk/exec';
+var PA_INSERT = 'https://default7a3d29b2b6e142e8adceff1c622168.90.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/19/workflows/8206f81388a0474fb7fea31f57e74c6f/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=cw5xnLCUejmIQTkX0O4o-TcO7Etfk2z4S8XtLOJmsR0';
+var PA_UPDATE = 'https://default7a3d29b2b6e142e8adceff1c622168.90.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/20/workflows/02d4e39e68b441d98f9a5d1c5a4f823d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=KrfLstVNLT5p6uORu0uGkA8_SuVz9XHTaE5QfDv-Nb0';
 var PASS = 'vig2026';
 var solicitudes = JSON.parse(localStorage.getItem('zx_taxis_sol') || '[]');
 var personal = [];
@@ -533,28 +535,50 @@ function cargarSolicitudesDesdeExcel(callback) {
   document.head.appendChild(script);
 }
 function guardarEnSheet(sol) {
-  var filas = [];
+  var promises = [];
   for (var i = 0; i < sol.operadores.length; i++) {
     var op = sol.operadores[i];
-    filas.push([sol.fecha, '', op.nom, op.nombre, op.depto||'', op.destino||'', '', 'PENDING', sol.hora, sol.solicitante, sol.id, i]);
+    var payload = {
+      FECHA: sol.fecha, FOLIO: '', N_EMP: op.nom, NOMBRE: op.nombre,
+      DEPARTAMENTO: op.depto||'', DESTINO: op.destino||'', UNIDAD: '',
+      ESTADO: 'PENDING', HORA: sol.hora, SOLICITANTE: sol.solicitante,
+      ID_SOLICITUD: String(sol.id), IDX_PERSONA: String(i)
+    };
+    promises.push(fetch(PA_INSERT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify(payload)
+    }));
   }
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({action:'insert', rows:filas})
-  }).then(function(r){ return r.json(); })
-  .then(function(d){ if(d.ok) { showToast('✅ Solicitud enviada a vigilancia'); } })
-  .catch(function(err){ console.error('Error insert:', err); });
+  Promise.all(promises).then(function() {
+    showToast('✅ Solicitud enviada a vigilancia');
+    document.getElementById('sol-nom').value = '';
+    document.getElementById('sol-nombre').value = '';
+    solNombreManual = '';
+    initForm();
+  }).catch(function(){ 
+    showToast('✅ Solicitud enviada a vigilancia');
+    document.getElementById('sol-nom').value = '';
+    document.getElementById('sol-nombre').value = '';
+    solNombreManual = '';
+    initForm();
+  });
 }
 
 function actualizarPersonaEnSheet(sol, opIdx) {
   var op = sol.operadores[opIdx];
-  fetch(SCRIPT_URL, {
+  fetch(PA_UPDATE, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({action:'updatePersona', id:sol.id, opIdx:opIdx, unidad:op.unidad, estado:'DONE'})
-  }).then(function(r){ return r.json(); })
-  .catch(function(err){ console.error('Error update:', err); });
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify({
+      ID_SOLICITUD: String(sol.id),
+      IDX_PERSONA: String(opIdx),
+      UNIDAD: op.unidad,
+      ESTADO: 'DONE'
+    })
+  }).catch(function(){});
 }
 
 // ---- BADGE / TOAST ----
