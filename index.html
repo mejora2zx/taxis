@@ -195,8 +195,13 @@ function showSection(id, btn) {
   for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
   document.getElementById('sec-' + id).classList.add('active');
   btn.classList.add('active');
-  if (id === 'vigilancia') renderVigilancia();
-  if (id === 'bitacora') renderBitacora();
+  if (id === 'vigilancia') {
+    // Siempre cargar desde Excel al abrir vigilancia
+    cargarSolicitudesDesdeExcel(function() { renderVigilancia(); });
+  }
+  if (id === 'bitacora') {
+    cargarSolicitudesDesdeExcel(function() { renderBitacora(); });
+  }
 }
 
 function pedirAcceso(seccion, btn) {
@@ -504,7 +509,29 @@ function exportarCSV() {
   var a = document.createElement('a'); a.href = url; a.download = 'bitacora_taxis.csv'; a.click();
 }
 
-// ---- GOOGLE SHEETS ----
+// ---- CARGAR SOLICITUDES DESDE EXCEL (para Vigilancia) ----
+function cargarSolicitudesDesdeExcel(callback) {
+  var cbName = 'cbSol_' + Date.now();
+  var script = document.createElement('script');
+  window[cbName] = function(data) {
+    if (data.ok && data.solicitudes) {
+      // Merge: conservar guardado local si existe, si no usar Excel
+      var fromExcel = data.solicitudes;
+      // Reemplazar solicitudes con las del Excel
+      solicitudes = fromExcel;
+      saveState();
+      updateBadge();
+    }
+    delete window[cbName]; script.remove();
+    if (callback) callback();
+  };
+  script.onerror = function() {
+    delete window[cbName]; script.remove();
+    if (callback) callback();
+  };
+  script.src = SCRIPT_URL + '?action=getSolicitudes&callback=' + cbName;
+  document.head.appendChild(script);
+}
 function guardarEnSheet(sol) {
   var filas = [];
   for (var i = 0; i < sol.operadores.length; i++) {
