@@ -180,13 +180,16 @@ function saveState() { localStorage.setItem('zx_taxis_sol', JSON.stringify(solic
 
 // ---- API POST (igual que inventario) ----
 function apiPost(payload, onSuccess, onError) {
+  var timeout = setTimeout(function() {
+    onError && onError(new Error('timeout'));
+  }, 10000);
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(payload)
   }).then(function(r) { return r.json(); })
-  .then(function(d) { if (onSuccess) onSuccess(d); })
-  .catch(function(err) { if (onError) onError(err); });
+  .then(function(d) { clearTimeout(timeout); if (onSuccess) onSuccess(d); })
+  .catch(function(err) { clearTimeout(timeout); if (onError) onError(err); });
 }
 
 // ---- NAVEGACION ----
