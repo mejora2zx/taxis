@@ -84,16 +84,12 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
 </nav>
 
 <main>
-
-  <!-- SOLICITAR -->
   <div class="section active" id="sec-solicitar">
     <div class="card">
       <div class="card-title">📋 Nueva solicitud de taxi</div>
       <div id="personal-status" style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">
         <span class="spinner"></span> Cargando catálogo de personal...
       </div>
-
-      <!-- Solicitante -->
       <div style="margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border)">
         <div class="grid2">
           <div>
@@ -106,20 +102,18 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
           </div>
         </div>
       </div>
-
       <div id="ops-container"></div>
       <div class="btn-row">
         <button class="btn btn-outline btn-sm" id="btn-add-op" onclick="addOperador()">+ Agregar persona</button>
         <span id="op-count-info" style="font-size:.8rem;color:var(--muted)"></span>
       </div>
       <div class="btn-row" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem">
-        <button class="btn btn-primary" onclick="enviarSolicitud()">🚖 Enviar solicitud a vigilancia</button>
+        <button class="btn btn-primary" id="btn-enviar" onclick="enviarSolicitud()">🚖 Enviar solicitud a vigilancia</button>
         <span id="form-msg" style="font-size:.85rem;color:var(--danger)"></span>
       </div>
     </div>
   </div>
 
-  <!-- VIGILANCIA -->
   <div class="section" id="sec-vigilancia">
     <div class="card" style="margin-bottom:1rem">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
@@ -134,7 +128,6 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     <div id="sol-list"></div>
   </div>
 
-  <!-- BITACORA -->
   <div class="section" id="sec-bitacora">
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem">
@@ -159,7 +152,6 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
     </div>
   </div>
 
-  <!-- LOGIN -->
   <div class="section" id="sec-login">
     <div class="login-box">
       <div style="font-size:2rem;margin-bottom:.75rem">🔒</div>
@@ -170,14 +162,11 @@ table.bitacora{width:100%;font-size:.85rem;border-collapse:collapse}
       <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="verificarPass()">Entrar</button>
     </div>
   </div>
-
 </main>
 <div id="toast"></div>
 
 <script>
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_FlSekYP6catKd-GrFCFGvnzuox4xsU0W4Qna9V0mPRSJPBcaNGUdpem_SmHsXWPk/exec';
-var PA_INSERT = 'https://default7a3d29b2b6e142e8adceff1c622168.90.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/19/workflows/8206f81388a0474fb7fea31f57e74c6f/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=cw5xnLCUejmIQTkX0O4o-TcO7Etfk2z4S8XtLOJmsR0';
-var PA_UPDATE = 'https://default7a3d29b2b6e142e8adceff1c622168.90.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/20/workflows/02d4e39e68b441d98f9a5d1c5a4f823d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=KrfLstVNLT5p6uORu0uGkA8_SuVz9XHTaE5QfDv-Nb0';
 var PASS = 'vig2026';
 var solicitudes = JSON.parse(localStorage.getItem('zx_taxis_sol') || '[]');
 var personal = [];
@@ -189,6 +178,17 @@ var tabPendiente = null;
 
 function saveState() { localStorage.setItem('zx_taxis_sol', JSON.stringify(solicitudes)); }
 
+// ---- API POST (igual que inventario) ----
+function apiPost(payload, onSuccess, onError) {
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(function(r) { return r.json(); })
+  .then(function(d) { if (onSuccess) onSuccess(d); })
+  .catch(function(err) { if (onError) onError(err); });
+}
+
 // ---- NAVEGACION ----
 function showSection(id, btn) {
   var secs = document.querySelectorAll('.section');
@@ -197,13 +197,8 @@ function showSection(id, btn) {
   for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
   document.getElementById('sec-' + id).classList.add('active');
   btn.classList.add('active');
-  if (id === 'vigilancia') {
-    // Siempre cargar desde Excel al abrir vigilancia
-    cargarSolicitudesDesdeExcel(function() { renderVigilancia(); });
-  }
-  if (id === 'bitacora') {
-    cargarSolicitudesDesdeExcel(function() { renderBitacora(); });
-  }
+  if (id === 'vigilancia') cargarSolicitudesDesdeExcel(function() { renderVigilancia(); });
+  if (id === 'bitacora') cargarSolicitudesDesdeExcel(function() { renderBitacora(); });
 }
 
 function pedirAcceso(seccion, btn) {
@@ -300,19 +295,16 @@ function renderOpCards() {
     html += '<div class="op-num">👤 Personal #' + (i+1) + '</div>';
     if (operadoresForm.length > 1) html += '<button class="op-remove" onclick="removeOperador(' + i + ')">✕</button>';
     html += '<div class="grid4">';
-    // Destino
     html += '<div><label>Destino</label><select onchange="onDestinoChange(' + i + ',this.value)">';
-    for (var d = 0; d < destinos.length; d++) {
-      html += '<option value="' + destinos[d] + '"' + (op.destino===destinos[d]?' selected':'') + '>' + (destinos[d]||'— Seleccionar —') + '</option>';
+    var destinos2 = ['', 'LA CHONA', 'HEB UNIVERSIDAD', 'OTRO'];
+    for (var d = 0; d < destinos2.length; d++) {
+      html += '<option value="' + destinos2[d] + '"' + (op.destino===destinos2[d]?' selected':'') + '>' + (destinos2[d]||'— Seleccionar —') + '</option>';
     }
     html += '</select>';
     html += '<input type="text" placeholder="Especifica el destino" id="destino-custom-' + i + '" style="margin-top:6px;display:' + (op.destino==='OTRO'?'block':'none') + '" value="' + (op.destinoCustom||'') + '" oninput="operadoresForm[' + i + '].destinoCustom=this.value">';
     html += '</div>';
-    // Nómina
     html += '<div><label>N. Nómina</label><input type="text" placeholder="Ej. 3317" value="' + op.nom + '" oninput="onNomChange(' + i + ',this.value)"></div>';
-    // Nombre
     html += '<div><label>Nombre</label><input type="text" placeholder="Autocompletado" value="' + op.nombre + '" id="nombre-' + i + '" oninput="operadoresForm[' + i + '].nombre=this.value"></div>';
-    // Depto
     html += '<div><label>Departamento</label><input type="text" placeholder="Autocompletado" value="' + op.depto + '" id="depto-' + i + '" oninput="operadoresForm[' + i + '].depto=this.value"></div>';
     html += '</div></div>';
   }
@@ -351,6 +343,9 @@ function enviarSolicitud() {
     if (!ops[i].destino) { msg.textContent = 'Selecciona destino para todas las personas'; return; }
   }
   msg.textContent = '';
+  var btn = document.getElementById('btn-enviar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
   var ahora = new Date();
   var fecha = ahora.toLocaleDateString('es-MX', {day:'2-digit', month:'2-digit', year:'numeric'});
   var hora = ahora.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
@@ -359,22 +354,31 @@ function enviarSolicitud() {
   saveState();
   updateBadge();
   notificarVigilancia();
-  guardarEnSheet(sol);
-  showToast('✅ Solicitud enviada a vigilancia');
-  document.getElementById('sol-nom').value = '';
-  document.getElementById('sol-nombre').value = '';
-  solNombreManual = '';
-  initForm();
+
+  var filas = [];
+  for (var i = 0; i < ops.length; i++) {
+    filas.push([fecha, '', ops[i].nom, ops[i].nombre, ops[i].depto||'', ops[i].destino||'', '', 'PENDING', hora, solNombre, String(sol.id), String(i)]);
+  }
+  apiPost({action:'insert', rows:filas}, function(d) {
+    btn.disabled = false;
+    btn.innerHTML = '🚖 Enviar solicitud a vigilancia';
+    showToast('✅ Solicitud enviada a vigilancia');
+    document.getElementById('sol-nom').value = '';
+    document.getElementById('sol-nombre').value = '';
+    solNombreManual = '';
+    initForm();
+  }, function(err) {
+    btn.disabled = false;
+    btn.innerHTML = '🚖 Enviar solicitud a vigilancia';
+    showToast('⚠ Error al enviar, intenta de nuevo');
+  });
 }
 
-// ---- NOTIFICACIONES PUSH ----
+// ---- NOTIFICACIONES ----
 function solicitarPermisoNotificaciones() {
   if (!('Notification' in window)) return;
-  if (Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
+  if (Notification.permission === 'default') Notification.requestPermission();
 }
-
 function notificarVigilancia() {
   if (!('Notification' in window)) return;
   if (Notification.permission === 'granted') {
@@ -415,7 +419,7 @@ function renderVigilancia() {
     var bClass = sol.estado === 'pending' ? 'badge-pending' : 'badge-done';
     var bText = sol.estado === 'pending' ? 'Pendiente (' + pendientes + ')' : 'Completado';
     html += '<div class="sol-card">';
-    html += '<div class="sol-header ' + sol.estado + '" onclick="toggleSol(' + sol.id + ')">';
+    html += '<div class="sol-header ' + sol.estado + '" onclick="toggleSol(\'' + sol.id + '\')">';
     html += '<div><span style="font-weight:700;font-size:1rem">' + sol.solicitante + '</span>';
     html += '<span style="font-size:.8rem;color:var(--muted)"> · ' + sol.hora + ' · ' + sol.operadores.length + ' persona(s)</span></div>';
     html += '<span class="badge-status ' + bClass + '">' + bText + '</span></div>';
@@ -430,7 +434,7 @@ function renderVigilancia() {
         html += '<td><strong>' + (op.unidad||'—') + '</strong></td><td style="color:var(--success)">✅</td>';
       } else {
         html += '<td><input type="text" placeholder="Ej. M-22" id="unidad-' + sol.id + '-' + j + '" style="min-width:100px"></td>';
-        html += '<td><button class="btn btn-sm btn-success" onclick="guardarPersona(' + sol.id + ',' + j + ')">💾</button></td>';
+        html += '<td><button class="btn btn-sm btn-success" onclick="guardarPersona(\'' + sol.id + '\',' + j + ')">💾</button></td>';
       }
       html += '</tr>';
     }
@@ -450,7 +454,7 @@ function toggleSol(id) {
 
 function guardarPersona(solId, opIdx) {
   var s = null;
-  for (var i = 0; i < solicitudes.length; i++) { if (solicitudes[i].id === solId) { s = solicitudes[i]; break; } }
+  for (var i = 0; i < solicitudes.length; i++) { if (String(solicitudes[i].id) === String(solId)) { s = solicitudes[i]; break; } }
   if (!s) return;
   var unidad = document.getElementById('unidad-' + solId + '-' + opIdx).value.trim();
   if (!unidad) { showToast('⚠ Ingresa el número de unidad'); return; }
@@ -461,9 +465,33 @@ function guardarPersona(solId, opIdx) {
   if (todos) s.estado = 'done';
   saveState();
   updateBadge();
-  actualizarPersonaEnSheet(s, opIdx);
+  apiPost({action:'updatePersona', id:String(s.id), opIdx:opIdx, unidad:unidad, estado:'DONE'}, function() {
+    showToast('✅ Unidad ' + unidad + ' guardada');
+  }, function() {
+    showToast('✅ Unidad guardada localmente');
+  });
   renderVigilancia();
-  showToast('✅ Unidad ' + unidad + ' guardada');
+}
+
+// ---- CARGAR SOLICITUDES DESDE EXCEL ----
+function cargarSolicitudesDesdeExcel(callback) {
+  var cbName = 'cbSol_' + Date.now();
+  var script = document.createElement('script');
+  window[cbName] = function(data) {
+    if (data.ok && data.solicitudes) {
+      solicitudes = data.solicitudes;
+      saveState();
+      updateBadge();
+    }
+    delete window[cbName]; script.remove();
+    if (callback) callback();
+  };
+  script.onerror = function() {
+    delete window[cbName]; script.remove();
+    if (callback) callback();
+  };
+  script.src = SCRIPT_URL + '?action=getSolicitudes&callback=' + cbName;
+  document.head.appendChild(script);
 }
 
 // ---- BITACORA ----
@@ -509,76 +537,6 @@ function exportarCSV() {
   var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a'); a.href = url; a.download = 'bitacora_taxis.csv'; a.click();
-}
-
-// ---- CARGAR SOLICITUDES DESDE EXCEL (para Vigilancia) ----
-function cargarSolicitudesDesdeExcel(callback) {
-  var cbName = 'cbSol_' + Date.now();
-  var script = document.createElement('script');
-  window[cbName] = function(data) {
-    if (data.ok && data.solicitudes) {
-      // Merge: conservar guardado local si existe, si no usar Excel
-      var fromExcel = data.solicitudes;
-      // Reemplazar solicitudes con las del Excel
-      solicitudes = fromExcel;
-      saveState();
-      updateBadge();
-    }
-    delete window[cbName]; script.remove();
-    if (callback) callback();
-  };
-  script.onerror = function() {
-    delete window[cbName]; script.remove();
-    if (callback) callback();
-  };
-  script.src = SCRIPT_URL + '?action=getSolicitudes&callback=' + cbName;
-  document.head.appendChild(script);
-}
-function guardarEnSheet(sol) {
-  var promises = [];
-  for (var i = 0; i < sol.operadores.length; i++) {
-    var op = sol.operadores[i];
-    var payload = {
-      FECHA: sol.fecha, FOLIO: '', N_EMP: op.nom, NOMBRE: op.nombre,
-      DEPARTAMENTO: op.depto||'', DESTINO: op.destino||'', UNIDAD: '',
-      ESTADO: 'PENDING', HORA: sol.hora, SOLICITANTE: sol.solicitante,
-      ID_SOLICITUD: String(sol.id), IDX_PERSONA: String(i)
-    };
-    promises.push(fetch(PA_INSERT, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify(payload)
-    }));
-  }
-  Promise.all(promises).then(function() {
-    showToast('✅ Solicitud enviada a vigilancia');
-    document.getElementById('sol-nom').value = '';
-    document.getElementById('sol-nombre').value = '';
-    solNombreManual = '';
-    initForm();
-  }).catch(function(){ 
-    showToast('✅ Solicitud enviada a vigilancia');
-    document.getElementById('sol-nom').value = '';
-    document.getElementById('sol-nombre').value = '';
-    solNombreManual = '';
-    initForm();
-  });
-}
-
-function actualizarPersonaEnSheet(sol, opIdx) {
-  var op = sol.operadores[opIdx];
-  fetch(PA_UPDATE, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {'Content-Type': 'text/plain'},
-    body: JSON.stringify({
-      ID_SOLICITUD: String(sol.id),
-      IDX_PERSONA: String(opIdx),
-      UNIDAD: op.unidad,
-      ESTADO: 'DONE'
-    })
-  }).catch(function(){});
 }
 
 // ---- BADGE / TOAST ----
